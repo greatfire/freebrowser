@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file. -->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The application name displayed to the user. -->
+    <string name="app_name" translatable="true">自由浏览</string>
+    <string name="menu_update" translatable="true">立即更新此软件</string>
+    <string name="prefs_about_chrome" translatable="false">关于自由浏览</string>
+    <string name="data_reduction_promo_learn_more_url" translatable="false">http://startpage.freebrowser.org/</string>
+</resources>

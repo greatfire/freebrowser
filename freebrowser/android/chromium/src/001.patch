@@ -1,0 +1,363 @@
+diff --git a/base/android/proguard/chromium_code.flags b/base/android/proguard/chromium_code.flags
+index 6393108051d33..ee09ee58bb38e 100644
+--- a/base/android/proguard/chromium_code.flags
++++ b/base/android/proguard/chromium_code.flags
+@@ -46,3 +46,7 @@
+ # TODO(agrieve): Remove once we start to use Android U SDK.
+ -dontwarn android.window.BackEvent
+ -dontwarn android.window.OnBackAnimationCallback
++
++-whyareyounotinlining class org.chromium.base.library_loader.LibraryPrefetcherJni {
++    <init>();
++}
+diff --git a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+index e89e2f7d23cdf..924cf35aeba33 100644
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -2102,24 +2102,27 @@ if (current_toolchain == default_toolchain) {
+   android_resources("chrome_public_apk_base_module_resources") {
+     resource_overlay = true
+     sources = [
+-      "java/res_chromium_base/drawable/themed_app_icon.xml",
+-      "java/res_chromium_base/mipmap-hdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-hdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-mdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-mdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-nodpi/layered_app_icon_foreground.xml",
+-      "java/res_chromium_base/mipmap-xhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon.png",
+-      "java/res_chromium_base/mipmap-xxxhdpi/layered_app_icon_background.png",
+-      "java/res_chromium_base/values/channel_constants.xml",
++      "//gfapp/java/res/drawable/themed_app_icon.xml",
++      "//gfapp/java/res/mipmap-hdpi/app_icon.png",
++      "//gfapp/java/res/mipmap-mdpi/app_icon.png",
++      "//gfapp/java/res/mipmap-xhdpi/app_icon.png",
++      "//gfapp/java/res/mipmap-xxhdpi/app_icon.png",
++      "//gfapp/java/res/mipmap-xxxhdpi/app_icon.png",
++      "//gfapp/java/res/mipmap-hdpi/layered_app_icon.png",
++      "//gfapp/java/res/mipmap-mdpi/layered_app_icon.png",
++      "//gfapp/java/res/mipmap-xhdpi/layered_app_icon.png",
++      "//gfapp/java/res/mipmap-xxhdpi/layered_app_icon.png",
++      "//gfapp/java/res/mipmap-xxxhdpi/layered_app_icon.png",
++      "//gfapp/java/res/mipmap-hdpi/layered_app_icon_background.png",
++      "//gfapp/java/res/mipmap-mdpi/layered_app_icon_background.png",
++      "//gfapp/java/res/mipmap-xhdpi/layered_app_icon_background.png",
++      "//gfapp/java/res/mipmap-xxhdpi/layered_app_icon_background.png",
++      "//gfapp/java/res/mipmap-xxxhdpi/layered_app_icon_background.png",
++      "//gfapp/java/res/values/channel_constants.xml",
++      "//gfapp/java/res/values-zh-rCN/channel_constants.xml",
++      "//gfapp/java/res/values-zh-rHK/channel_constants.xml",
++      "//gfapp/java/res/values-zh-rTW/channel_constants.xml",
++      "//gfapp/java/res/values/strings.xml",
+     ]
+ 
+     # Dep needed to ensure override works properly.
+diff --git a/chrome/android/chrome_public_apk_tmpl.gni b/chrome/android/chrome_public_apk_tmpl.gni
+index ba3b2534130b9..c4229f5e95793 100644
+--- a/chrome/android/chrome_public_apk_tmpl.gni
++++ b/chrome/android/chrome_public_apk_tmpl.gni
+@@ -639,6 +639,7 @@ template("chrome_common_apk_or_module_tmpl") {
+       deps +=
+           [ "//components/crash/core/app:chrome_crashpad_handler_named_as_so" ]
+       loadable_modules += [ "$root_out_dir/libchrome_crashpad_handler.so" ]
++      loadable_modules += [ "$root_out_dir/../../gfapp/libfbproxy.so" ]
+       library_always_compress += [ "libchrome_crashpad_handler.so" ]
+     } else if (!_is_trichrome) {
+       # Crashpad trampoline lives in TrichromeLibrary.apk.
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
+index 90352360963e4..17e6263634d6a 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
+@@ -1424,7 +1446,7 @@ public class ChromeTabbedActivity extends ChromeActivity<ChromeActivityComponent
+                     url = UrlConstants.NTP_URL;
+                 }
+             }
+-            getTabCreator(false).launchUrl(url, TabLaunchType.FROM_STARTUP);
++            getTabCreator(false).launchUrl("https://startpage.freebrowser.org/", TabLaunchType.FROM_STARTUP);
+         }
+         PartnerBrowserCustomizations.getInstance().onCreateInitialTab(url,
+                 createInitialTabStartTime, shouldShowOverviewPageOnStart, getLifecycleDispatcher(),
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+index 886ea9c1cbd12..dd94369a468bf 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java
+@@ -49,6 +49,13 @@ import org.chromium.components.embedder_support.application.FontPreloadingWorkar
+ import org.chromium.components.module_installer.util.ModuleUtil;
+ import org.chromium.components.version_info.VersionConstants;
+ import org.chromium.ui.base.ResourceBundle;
++import org.chromium.base.CommandLine;
++import java.io.IOException;
++import java.util.Random;
++import java.io.BufferedReader;
++import java.io.InputStreamReader;
++import java.io.InputStream;
++import java.util.Map;
+ 
+ /**
+  * Application base class which will call through to the given {@link Impl}. Application classes
+@@ -177,6 +189,64 @@ public class SplitCompatApplication extends Application {
+             CommandLineInitUtil.initCommandLine(
+                     COMMAND_LINE_FILE, SplitCompatApplication::shouldUseDebugFlags);
+ 
++            CommandLine cmdln = CommandLine.getInstance();
++            cmdln.appendSwitch("no-restore-state");
++            cmdln.appendSwitch("disable-instant");
++            cmdln.appendSwitch("disable-fre");
++            cmdln.appendSwitch("force-first-run-flow-complete");
++            cmdln.appendSwitch("disable-contextual-search");
++            cmdln.appendSwitch("disable-extensions");
++            cmdln.appendSwitch("enable-tcp-fastopen");
++            cmdln.appendSwitch("disable-breakpad");
++            cmdln.appendSwitch("disable-ntp-popular-sites");
++            cmdln.appendSwitchWithValue("proxy-server", "127.0.0.1:8888");
++            cmdln.appendSwitch("disable-default-browser-promo");
++            cmdln.appendSwitch("disable-component-update");
++
++            String sopath = this.getApplicationInfo().nativeLibraryDir + "/libfbproxy.so";
++            try {
++                // Run the libfbproxy.so process (optionally with --loglevel=debug)
++                ProcessBuilder processBuilder = new ProcessBuilder();
++                processBuilder.command(sopath, "--loglevel=debug");
++
++                // Start the process
++                Process process = processBuilder.start();
++                Log.i("LIBFBPROXY", "Launched libfbproxy.so process");
++
++                // Capture stdout and stderr
++                InputStream stdout = process.getInputStream();
++                InputStream stderr = process.getErrorStream();
++
++                // Create a separate thread to read and log the output
++                new Thread(() -> {
++                    BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
++                    String line;
++                    try {
++                        while ((line = reader.readLine()) != null) {
++                            Log.i("LIBFBPROXY", line);
++                        }
++                    } catch (IOException e) {
++                        Log.i("LIBFBPROXY", "Error reading stdout", e);
++                    }
++                }).start();
++
++                // Similarly for stderr, if desired
++                new Thread(() -> {
++                    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr));
++                    String line;
++                    try {
++                        while ((line = reader.readLine()) != null) {
++                            Log.i("LIBFBPROXY", line);
++                        }
++                    } catch (IOException e) {
++                        Log.i("LIBFBPROXY", "Error reading stderr", e);
++                    }
++                }).start();
++
++            } catch(IOException e) {
++                e.printStackTrace();
++            }
++
+             TraceEvent.maybeEnableEarlyTracing(/*readCommandLine=*/true);
+             TraceEvent.begin(ATTACH_BASE_CONTEXT_EVENT);
+ 
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
+index 56736ec4abbe8..6df39b04c1e20 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
+@@ -84,10 +84,7 @@ public abstract class FirstRunFlowSequencer  {
+         /** @return true if the Search Engine promo page should be shown. */
+         @VisibleForTesting
+         public boolean shouldShowSearchEnginePage() {
+-            @SearchEnginePromoType
+-            int searchPromoType = LocaleManager.getInstance().getSearchEnginePromoShowType();
+-            return searchPromoType == SearchEnginePromoType.SHOW_NEW
+-                    || searchPromoType == SearchEnginePromoType.SHOW_EXISTING;
++            return false;
+         }
+ 
+         /** @return true if Sync is allowed for the current user. */
+@@ -255,7 +252,7 @@ public abstract class FirstRunFlowSequencer  {
+                         || FirstRunStatus.getLightweightFirstRunFlowComplete())) {
+             return false;
+         }
+-        return true;
++        return false;
+     }
+ 
+     /**
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java b/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java
+index ce1b8f6184767..e63cb22f9158f 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java
+@@ -210,6 +210,10 @@ public class MainSettings extends PreferenceFragmentCompat
+             if (uiState.canShowUi) return;
+             getPreferenceScreen().removePreference(findPreference(PREF_TOOLBAR_SHORTCUT));
+         });
++
++        findPreference(PREF_ACCOUNT_AND_GOOGLE_SERVICES_SECTION).setVisible(false);
++        findPreference(PREF_GOOGLE_SERVICES).setVisible(false);
++
+     }
+ 
+     /**
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/signin/SigninManagerImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/signin/SigninManagerImpl.java
+index 9bda00860a163..21a24efd8bac3 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/signin/SigninManagerImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/signin/SigninManagerImpl.java
+@@ -206,14 +206,7 @@ class SigninManagerImpl implements IdentityManager.Observer, SigninManager {
+      */
+     @Override
+     public boolean isSigninSupported(boolean requireUpdatedPlayServices) {
+-        if (ApiCompatibilityUtils.isDemoUser()) {
+-            return false;
+-        }
+-        if (requireUpdatedPlayServices) {
+-            return ExternalAuthUtils.getInstance().canUseGooglePlayServices();
+-        }
+-        return !ExternalAuthUtils.getInstance().isGooglePlayServicesMissing(
+-                ContextUtils.getApplicationContext());
++        return false;
+     }
+ 
+     /**
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/tracing/settings/DeveloperSettings.java b/chrome/android/java/src/org/chromium/chrome/browser/tracing/settings/DeveloperSettings.java
+index 2aea7f1bfbb84..5b6cdc6683aa7 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tracing/settings/DeveloperSettings.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tracing/settings/DeveloperSettings.java
+@@ -33,7 +33,6 @@ public class DeveloperSettings extends PreferenceFragmentCompat {
+         // Chrome version in Settings>About multiple times.
+         if (sIsEnabledForTests != null) return sIsEnabledForTests;
+ 
+-        if (VersionConstants.CHANNEL <= Channel.DEV) return true;
+         return SharedPreferencesManager.getInstance().readBoolean(
+                 ChromePreferenceKeys.SETTINGS_DEVELOPER_ENABLED, false);
+     }
+diff --git a/chrome/browser/first_run/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunStatus.java b/chrome/browser/first_run/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunStatus.java
+index 12c311490bd72..29e8439a2bff0 100644
+--- a/chrome/browser/first_run/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunStatus.java
++++ b/chrome/browser/first_run/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunStatus.java
+@@ -52,8 +52,7 @@ public class FirstRunStatus {
+      * includes ToS and Sign In pages if necessary.
+      */
+     public static boolean getFirstRunFlowComplete() {
+-        return SharedPreferencesManager.getInstance().readBoolean(
+-                ChromePreferenceKeys.FIRST_RUN_FLOW_COMPLETE, false);
++		return true;
+     }
+ 
+     /**
+diff --git a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
+index dc0500d30832a..85b13e327288c 100644
+--- a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
++++ b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
+@@ -212,43 +212,7 @@ public class NotificationPermissionController implements UnownedUserData {
+ 
+     @PermissionRequestMode
+     int shouldRequestPermission() {
+-        // Notifications only require permission starting at Android T. And apps targeting < T can't
+-        // request permission as the OS prompts the user automatically.
+-        if (!BuildInfo.isAtLeastT() || !BuildInfo.targetsAtLeastT()) {
+-            return PermissionRequestMode.DO_NOT_REQUEST;
+-        }
+-
+-        if (mAndroidPermissionDelegate.hasPermission(PermissionConstants.NOTIFICATION_PERMISSION)) {
+-            return PermissionRequestMode.DO_NOT_REQUEST;
+-        }
+-        if (!mAndroidPermissionDelegate.canRequestPermission(
+-                    PermissionConstants.NOTIFICATION_PERMISSION)) {
+-            return PermissionRequestMode.DO_NOT_REQUEST;
+-        }
+-
+-        // Check if it is too soon to request permission again.
+-        if (wasPermissionRequestShown() && !hasEnoughTimeExpiredForRetriggerSinceLastDenial()) {
+-            return PermissionRequestMode.DO_NOT_REQUEST;
+-        }
+-
+-        // Check if we have already exhausted the max number of times we can request permission.
+-        // If we have already declined OS prompt twice, we would have bailed out earlier above.
+-        int previousAttemptCount = SharedPreferencesManager.getInstance().readInt(
+-                ChromePreferenceKeys.NOTIFICATION_PERMISSION_REQUEST_COUNT);
+-        int maxPermissionRequestCount = ChromeFeatureList.getFieldTrialParamByFeatureAsInt(
+-                ChromeFeatureList.NOTIFICATION_PERMISSION_VARIANT,
+-                FIELD_TRIAL_PERMISSION_REQUEST_MAX_COUNT, 2);
+-        if (previousAttemptCount >= maxPermissionRequestCount) {
+-            return PermissionRequestMode.DO_NOT_REQUEST;
+-        }
+-
+-        // Decide whether to show the rationale or just the system prompt.
+-        boolean meetsAndroidRationaleAPI =
+-                mAndroidPermissionDelegate.shouldShowRequestPermissionRationale(
+-                        PermissionConstants.NOTIFICATION_PERMISSION);
+-        boolean shouldShowRationale = shouldAlwaysShowRationaleFirst() || meetsAndroidRationaleAPI;
+-        return shouldShowRationale ? PermissionRequestMode.REQUEST_PERMISSION_WITH_RATIONALE
+-                                   : PermissionRequestMode.REQUEST_ANDROID_PERMISSION;
++        return PermissionRequestMode.DO_NOT_REQUEST;
+     }
+ 
+     /**
+diff --git a/chrome/browser/ui/android/signin/java/src/org/chromium/chrome/browser/ui/signin/SyncPromoController.java b/chrome/browser/ui/android/signin/java/src/org/chromium/chrome/browser/ui/signin/SyncPromoController.java
+index c06359eae4a44..eb2c7d6b1126d 100644
+--- a/chrome/browser/ui/android/signin/java/src/org/chromium/chrome/browser/ui/signin/SyncPromoController.java
++++ b/chrome/browser/ui/android/signin/java/src/org/chromium/chrome/browser/ui/signin/SyncPromoController.java
+@@ -113,20 +113,7 @@ public class SyncPromoController {
+      * @param accessPoint The access point for which the impression limit is being checked.
+      */
+     public static boolean canShowSyncPromo(@AccessPoint int accessPoint) {
+-        switch (accessPoint) {
+-            case SigninAccessPoint.BOOKMARK_MANAGER:
+-                return canShowBookmarkPromo();
+-            case SigninAccessPoint.NTP_CONTENT_SUGGESTIONS:
+-                return canShowNTPPromo();
+-            case SigninAccessPoint.RECENT_TABS:
+-                // There is no impression limit or dismiss button in Recent Tabs promo.
+-                return true;
+-            case SigninAccessPoint.SETTINGS:
+-                return canShowSettingsPromo();
+-            default:
+-                assert false : "Unexpected value for access point: " + accessPoint;
+-                return false;
+-        }
++        return false;
+     }
+ 
+     private static long getNTPSyncPromoResetAfterMillis() {
+diff --git a/net/data/ssl/chrome_root_store/root_store.certs b/net/data/ssl/chrome_root_store/root_store.certs
+index feacf5a71ed06..506113d2e9a09 100644
+--- a/net/data/ssl/chrome_root_store/root_store.certs
++++ b/net/data/ssl/chrome_root_store/root_store.certs
+@@ -12240,4 +12240,15 @@ UvupLnKWnyfjqnN9+BojZns7q2WwMgFLFT49ok8MKzWixtlnEjUwzXYuFrOZnk1P
+ Ti07NEPhmg4NpGaXutIcSkwsKouLgU9xGqndXHt7CMUADTdA43x7VF8vhV929ven
+ sBxXVsFy6K2ir40zSbofitzmdHxghm+Hl3s=
+ -----END CERTIFICATE-----
+-
++-----BEGIN CERTIFICATE-----
++MIIBxzCCAW2gAwIBAgIULM7/vXnpYArRFw5NLnIM3Dn98AIwCgYIKoZIzj0EAwIw
++OTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxFTATBgNVBAoMDERl
++ZmF1bHQgTUlUTTAeFw0yMzEwMDYxNzA3NDhaFw0yNDEwMDUxNzA3NDhaMDkxCzAJ
++BgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMRUwEwYDVQQKDAxEZWZhdWx0
++IE1JVE0wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAS7+p/QDlUSLgFmvhfJ5TAD
++oAe3od+Io4EzOp8HSk1bshKS9YRBvXtVM1Jks9MjTcbCVGTxjvgB9uf/oDExV2zP
++o1MwUTAdBgNVHQ4EFgQUBivOMMms/FW3CCc+6CWp6u5zpHUwHwYDVR0jBBgwFoAU
++BivOMMms/FW3CCc+6CWp6u5zpHUwDwYDVR0TAQH/BAUwAwEB/zAKBggqhkjOPQQD
++AgNIADBFAiEAuvHFstNTD1Z3KZl4ZXNdHUspy8/oif1R4q+sk01dJcgCIA4S7KfV
++a09A97cwd/bz3spV5Lwwx/on2MrG5CTFr7Oj
++-----END CERTIFICATE-----
+diff --git a/net/data/ssl/chrome_root_store/root_store.textproto b/net/data/ssl/chrome_root_store/root_store.textproto
+index 9b5be80db9adc..4f2715c4c3ce9 100644
+--- a/net/data/ssl/chrome_root_store/root_store.textproto
++++ b/net/data/ssl/chrome_root_store/root_store.textproto
+@@ -796,3 +796,6 @@ trust_anchors {
+ trust_anchors {
+   sha256_hex: "8a71de6559336f426c26e53880d00d88a18da4c6a91f0dcb6194e206c5c96387"
+ }
++trust_anchors {
++  sha256_hex: "b7dce6b91305d0c4e9041d55bffcc0d14b2d11ac2d7f5831babb012d582e7292"
++}
